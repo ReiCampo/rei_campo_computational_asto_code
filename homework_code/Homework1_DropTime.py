@@ -9,11 +9,12 @@
 ###-------------------------------------------------------------------------###
 
 # Importing necessary packages
+
 import argparse
 
 # Starting by creating the function
 
-def drop_time(height, gravity = 'Earth', v_0 = 0.0):
+def drop_time(height, gravity, v_0):
     """
     This function calculates the time it takes for an object to touch the ground
     at a user-inputted height. The function inherently assumes the inputs are in
@@ -26,8 +27,8 @@ def drop_time(height, gravity = 'Earth', v_0 = 0.0):
         height (float):  
             This takes in a non-negative number. The units are in meters.
 
-        gravity (float, string):  
-            This can either take a float or string. The units are in 
+        gravity (str):  
+            This takes a string value of known gravities. The units are in 
             meters/second^2 and gravity must be a negative number. The string 
             input has to match one of the known keywords. If the user inputs an
             unrecognized string, they will be prompted to enter in an acceptable
@@ -119,21 +120,32 @@ def drop_time(height, gravity = 'Earth', v_0 = 0.0):
 parser = argparse.ArgumentParser(description = "Calculate the time it takes an object to fall")
 
 # Creating the height parser
-parser.add_argument("--height", 
+parser.add_argument("height", 
                     type = float, 
                     help = "This is the initial height from the ground that you are using the calculate the time it takes to fall. The units must be in meters.")
 
 # Creating the gravity parser
 parser.add_argument("--gravity",
                     default = 'Earth', 
+                    type = str,
                     help = "This is the acceleration due to gravity in the units of meters/second^2. It automatically assumes Earth's gravity, however if you use your own input, it must be negative. There are some keywords that you can use like 'Earth' or 'Jupiter' that will automatically fill in the acceleration due to gravity for you. Check out the doc strings to see what key words you can input here.")
 
 # Creating the initial velocity parser
 parser.add_argument("--v_0",
                     default = 0.0,
-                    help = "This is the initial velocity in the units meters/second. It automatically assumes 0 initial velocity, however you can input positive or negative velocities. Reminder: a negative velocity is going in the direction of gravity (downward) while positive velocity is going opposite of gravity (upward).")
+                    type = float,
+                    help = "This is the initial velocity in the units meters/second. It automatically assumes 0 initial velocity, however you can input positive or negative velocities. Reminder: a positive velocity is going in the direction of gravity (downward) while negative velocity is going opposite of gravity (upward).")
 
 args = parser.parse_args()
+
+# This prints out the valeus from the drop_time function. 'gravity' and 'v_0'
+# are background arguments, so if you want to adjust these, you will have to do
+# python Homework1_DropTime 10 --gravity "Jupiter" --v_0 20, for example. But if
+# you just want to keep one or less default values, you can write:
+# python Homework1_DropTime 10 --gravity "Jupiter"  or
+# python Homework1_DropTime 34 --v_0 3.7
+# These are just a few examples of how you can interact with the code in the 
+# terminal.
 print(drop_time(height = args.height,
                 gravity = args.gravity,
                 v_0 = args.v_0))

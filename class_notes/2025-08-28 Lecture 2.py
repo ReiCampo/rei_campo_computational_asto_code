@@ -1,6 +1,7 @@
 ### Lecutre 2 Notes
 ### 8/28/2025
 
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
