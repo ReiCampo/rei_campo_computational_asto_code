@@ -19,9 +19,10 @@ def drop_time(height, gravity, v_0):
     This function calculates the time it takes for an object to touch the ground
     at a user-inputted height. The function inherently assumes the inputs are in
     meters and seconds, there is no initial velocity, and that we're on Earth. 
-    However, you can adjust the acceleration due to gravity by simply entering 
-    in a number or you can even use common strings like 'Venus,' 'Mars,' or 
-    'Moon.'
+    However, you can adjust the acceleration due to gravity by writing the 
+    planet or celestial body's name like 'Venus,' 'Mars,' or 'Moon.' See the 
+    'gravtity' input below to see what string options you are allowed to enter
+    into this function.
 
     Inputs:
         height (float):  
@@ -55,14 +56,27 @@ def drop_time(height, gravity, v_0):
 
     """
 
-    # Setting up some error conditions and string checking:
+    ### Setting up some error conditions and string checking: ###
+
+    # First, I only want the user to input a positive height value, so I will 
+    # create an error check to do so.
 
     if height < 0:
         raise ValueError("The 'height' value should be positive. You entered: " +  str(height))
+    
+    # Next, I want to check to make sure that the input for gravity is a string,
+    # and if it is, then I capitalize the entire value that the user inputted to
+    # ensure that if the user used different capitalization like "earth," 
+    # "EaRtH," or "eartH," there won't be a string mismatch when checking later
+    # on. If the user inputted anything but a string, an error will be thrown.
+
     if isinstance(gravity, str):
         gravity = gravity.upper()
-    elif gravity >= 0:
-        raise ValueError("The 'gravity' arguement should be negative. You entered:" + str(gravity))
+    else:
+        raise ValueError("The 'gravity' arguement must be a string. You entered:"
+        " " + str(gravity) + "\n Please look at the doc strings or type in "
+        "'-h' in the terminal after the command to run the code to see a list"
+        "of acceptable values.")
     
     # Setting up key words for the gravity argument:
 
@@ -100,7 +114,7 @@ def drop_time(height, gravity, v_0):
         "'Mars',\n"
         "'Jupiter',\n"
         "'Saturn',\n"
-        "'Uranus', and \n"
+        "'Uranus',\n"
         "'Neptune'\n"
         "Check your spelling or use a value listed above.")
 
@@ -122,19 +136,40 @@ parser = argparse.ArgumentParser(description = "Calculate the time it takes an o
 # Creating the height parser
 parser.add_argument("height", 
                     type = float, 
-                    help = "This is the initial height from the ground that you are using the calculate the time it takes to fall. The units must be in meters.")
+                    help = "This is the initial height from the ground that you " \
+                    "are using the calculate the time it takes to fall. The " \
+                    "units must be in meters.")
 
 # Creating the gravity parser
 parser.add_argument("--gravity",
                     default = 'Earth', 
                     type = str,
-                    help = "This is the acceleration due to gravity in the units of meters/second^2. It automatically assumes Earth's gravity, however if you use your own input, it must be negative. There are some keywords that you can use like 'Earth' or 'Jupiter' that will automatically fill in the acceleration due to gravity for you. Check out the doc strings to see what key words you can input here.")
+                    help = "This is the acceleration due to gravity in the units " \
+                    "of meters/second^2. It automatically assumes Earth's " \
+                    "gravity, however you can use another planet or celestial"
+                    "body's gravity. \n Here is a list of acceptable values you can" \
+                    "input into the 'gravity' argument:" \
+                    "\n 'Sun'" \
+                    "\n 'Mercury'" \
+                    "\n 'Venus'" \
+                    "\n 'Earth'" \
+                    "\n 'Moon'" \
+                    "\n 'Mars'" \
+                    "\n 'Jupiter'" \
+                    "\n 'Saturn'" \
+                    "\n 'Uranus'" \
+                    "\n 'Neptune'")
 
 # Creating the initial velocity parser
 parser.add_argument("--v_0",
                     default = 0.0,
                     type = float,
-                    help = "This is the initial velocity in the units meters/second. It automatically assumes 0 initial velocity, however you can input positive or negative velocities. Reminder: a positive velocity is going in the direction of gravity (downward) while negative velocity is going opposite of gravity (upward).")
+                    help = "This is the initial velocity in the units " \
+                    "meters/second. It automatically assumes 0 initial velocity," \
+                    " however you can input positive or negative velocities. " \
+                    "Reminder: a positive velocity is going in the direction of" \
+                    " gravity (downward) while negative velocity is going " \
+                    "opposite of gravity (upward).")
 
 args = parser.parse_args()
 
