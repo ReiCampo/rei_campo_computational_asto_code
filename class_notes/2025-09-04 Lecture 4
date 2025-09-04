@@ -1,0 +1,170 @@
+### Lecutre 4 Notes
+### 9/4/2025
+
+### Discussing accuracy and speed
+
+# Remember, computers are not accurate when they make calculations! They don't 
+# calculate exact numbers. 
+
+# Accuracy refers to how close the computed number is to the analytical value
+# Speed refers to the time (usually the CPU time) it takes to perform a
+# calculation
+
+# Machine precision:
+# Single precision:
+# Floats are stored on a computer using a fixed number of bits.
+# Generally, there are 36 bits stored for each number, however 1 bit is dedicated
+# to the sign, 8 to scientific notation (exponents). 
+# The range is low and not suitable for astrophysics, a range of 2^127 (or 10^38)
+# Decimal precision: ~6 significant digits.
+
+# Double precision:
+# Much better for astrophysics! It can store up to 64 bits.
+# The rane is from 2^1023 multiplier (or 10^308)
+# decimal precision: ~15 significant digits.
+
+
+
+#########################################
+###             Excersie 1            ###
+#########################################
+
+# find the machine precision of your computer:
+
+x = 1.0
+eps = 1.0
+
+while not x + eps == x:
+    eps = 0.5 * eps
+
+print(2*eps)
+
+# The printed statement I got was:
+# 2.220446049250313e-16
+
+
+# Overflow and Underflow Errors:
+# A computer has a finite number of bytes to represent a number. This means that
+# there is a biggest possible floating point number the computer can represent.
+# In Python, the largest number it can hold is 10^308. 
+# There's also a smallest possible float on the computer. If you create a float
+# smaller than that value, the computer will assign it to 0 and you will get an
+# error.
+
+# Rounding Errors
+# The computer will round to a finite amount of numbers, which means there is 
+# inherent error brought in by the computer. Generally, the computer will round
+# to 15 numbers
+
+
+#########################################
+###             Excersie 2            ###
+#########################################
+
+# 0.1 is not represented in binary exactly
+
+b = 0.1 
+
+print(type(b))
+
+print("{:30.20}".format(b))
+
+import sys
+
+sys.float_info
+
+# This is what was printed out: 
+# b = 0.10000000000000000555
+# sys.float_info(max=1.7976931348623157e+308, max_exp=1024, max_10_exp=308, 
+# min=2.2250738585072014e-308, min_exp=-1021, min_10_exp=-307, dig=15, 
+# mant_dig=53, epsilon=2.220446049250313e-16, radix=2, rounds=1)
+
+
+# Error increases as sqrt(N) which menas the fractional error decreases as 
+# sqrt(N), which is good! You don't know less and less about your number as you
+# add it over and over
+# subtraction is more concerning, though.
+
+#########################################
+###             Excersie 3            ###
+#########################################
+
+
+# the difference of two numbers
+import numpy as np
+
+x = 1
+
+y = 1 + 10**(-14) * 2**(1/2)
+
+print(1e14 * (y-x))
+# 1.4210854715202004
+
+print(np.sqrt(2))
+# 1.4142135623730951
+
+# This is especially prominant when we do Taylor Series! The choice of
+# algorithm makes a giant difference!
+# Always keep in mind of subtracting large numbers and how you can run into 
+# issues because of this!
+
+#########################################
+###             Excersie 4            ###
+#########################################
+
+# Write a program that takes as input 3 numbers and print out two solutions for
+# the quadratic formula
+
+def quad_formula(a, b, c):
+    x_pos = (-b + np.sqrt(b**2 - 4*a*c)) / (2*a)
+    x_neg = (-b - np.sqrt(b**2 - 4*a*c)) / (2*a)
+
+    return x_pos, x_neg
+
+quadratic_1 = quad_formula(0.001, 1000, 0.001)
+
+print(quadratic_1)
+
+def inv_quad_formula(a, b, c):
+    x_pos = (2 * c) / (-b + np.sqrt(b**2 - 4*a*c))
+    x_neg = (2 * c) / (-b - np.sqrt(b**2 - 4*a*c))
+
+    return x_pos, x_neg
+
+quadratic_2 = inv_quad_formula(0.001, 1000, 0.001)
+
+print(quadratic_2)
+
+
+# Speed
+# remember, computers aren't infinitely fast. 
+# 1 million calculations can be done by 1 second
+# 1 billion calculations can take 20 minutes
+# 1 trillion calculations takes 300 hours (12 days)
+
+
+#########################################
+###             Excersie 5            ###
+#########################################
+
+# Write a program to solve the average energy in a quantum harmonic oscillator
+# which has the energy levels of E_n = hf(n + 1/2)
+
+def energy_function(B, n):
+
+    zeta = 0
+    E = 0
+
+    for i in range(n):
+        E_n = 1 * (i + 0.5)
+        zeta = zeta + np.exp(-B * E_n)
+        E = E + (1/zeta) * E_n * np.exp(-B * E_n)
+    
+    return zeta, E
+
+test = energy_function(0.01, 10)
+print(test)
+
+test_thousand = energy_function(0.01, 1000)
+print(test)
+
