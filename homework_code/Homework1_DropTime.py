@@ -74,7 +74,7 @@ def drop_time(height, gravity, v_0):
         gravity = gravity.upper()
     else:
         raise ValueError("The 'gravity' arguement must be a string. You entered:"
-        " " + str(gravity) + "\n Please look at the doc strings or type in "
+        " " + str(gravity) + "\n Please look at the doc strings or type "
         "'-h' in the terminal after the command to run the code to see a list"
         "of acceptable values.")
     

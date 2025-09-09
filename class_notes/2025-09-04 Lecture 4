@@ -168,3 +168,16 @@ print(test)
 test_thousand = energy_function(0.01, 1000)
 print(test)
 
+
+#########################################
+###             Excersie 6            ###
+#########################################
+
+# Let's use the trapezoidal rule to calculate the integral of X^4 - 2x + 1 from
+# 0 to 2
+
+
+def trap_rule(a, b, n):
+    delta_x = (b - a) / n
+
+    
