@@ -24,7 +24,7 @@ def trap_rule(a, b, n):
 test_1 = trap_rule(0, 2, 10)
 
 print(test_1)
-# answser: 4.50656
+# answer: 4.50656
 
 # simpson's rule is going to be more accurate than trapezoidal rule
 
