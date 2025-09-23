@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 # Creating the function that will solve the equation numerically:
 
-def lagrange_points(start_value, numerical_evaluation, units):
+def lagrange_points(start_value, numerical_evaluation, units = "SI"):
     '''
     This function will solve for the distance the Earth-Moon Lagrange Point 1 is
     from the center of the Earth. 
