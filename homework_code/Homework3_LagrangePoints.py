@@ -136,22 +136,12 @@ def lagrange_points(start_value, numerical_evaluation, units = "SI", error_toler
 
     if numerical_evaluation == "NEWTONIAN":
 
-        # I have decided to let the user input the h value later instead of 
-        # making it an argument to the function. Below, the user is prompted
-        # to enter in an h value which will be used later when calculating the
-        # derivative:
-        
-        h_value = float(input("You have selected the Newtonian method to numerically " \
-            "solve for the Lagrangian Point. Please type in an (h) value to " \
-            "calculate the derivative using the central difference method. A " \
-            "recommended (h) value is 1e-5. "))
+        # Creating the function that calculates the derivative of the non-linear
+        # equation:
 
-        # Using the central difference method to find the derivative for the
-        # function:
+        def newtonian_derivative(r_lagrange): 
 
-        def newtonian_derivative(h): 
-
-            df = (lagrange_equation(start_value + (h/2)) - lagrange_equation(start_value - (h/2))) / h
+            df = ((-2 * G_univ * M_Earth) / r_lagrange**3) - ((2 * G_univ * m_moon) / (R_EM - r_lagrange)**3) - (w**2)
 
             return df
         
@@ -167,7 +157,7 @@ def lagrange_points(start_value, numerical_evaluation, units = "SI", error_toler
 
             # Calculating the guess:
 
-            newton_calculation = newton_guess - (lagrange_equation(newton_guess) / newtonian_derivative(h_value))
+            newton_calculation = newton_guess - (lagrange_equation(newton_guess) / newtonian_derivative(newton_guess))
              
             if abs( (newton_calculation - newton_guess) / newton_calculation) < error_tolerance:
                 # Update the distance_to_L1 variable to the calculated value and
