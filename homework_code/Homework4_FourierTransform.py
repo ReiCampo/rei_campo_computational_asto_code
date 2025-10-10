@@ -24,20 +24,29 @@ from numpy import zeros
 from cmath import exp, pi
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import os
 import argparse
+import os
 
-###  Setting the working directory for now to point to my local homework folder   
 os.chdir("/Users/RachelCampo/Desktop/CUNY Classes/" \
 "Fall 2025 Computational Astro/rei_campo_computational_asto_code/homework_code")
 
 
-def descrete_fourier_transform():
+def descrete_fourier_transform(N_coefficients = 10):
     '''
     This function will calculate a fourier transform and plot the power spectrum
-    and fit of fourier transform of spectra TIC 0001230647 found on the TESS 
+    and fit of Fourier transform of spectra TIC 0001230647 found on the TESS 
     website: 
     https://tessebs.villanova.edu/0001230647
+    
+    Inputs:
+        N_coefficients (int):
+            The number of coefficients the user would like to use for the 
+            Fourier transform. The default is set to 10 coefficients.
+            
+    Outpus:
+        fig, ax (plot):
+            Returns the Fourier transform using the number of coefficients
+            inputted and animates the approximation on top of the spectra.
     
     
     '''
@@ -94,45 +103,40 @@ def descrete_fourier_transform():
     # Getting rid of k = 0 values
     power_spectrum[0] = 0
     
-    # Sorting the list of the power spectrum to find the top 15 coefficients
-    sorted_coefficients = sorted(power_spectrum, reverse = True)[0:14]
-    print(sorted_coefficients)
-    
-    #filtering_array = sorted_coefficients < 
-    
     # Creating the x values for the power spectrum plot
     n = np.arange(len(power_spectrum))
     
-    # Plotting the power spectrum
+    # Plotting the power spectrum of the Fourier series:
     plt.plot(n, power_spectrum)
-    plt.title("Plotting the Power Spectrum of TIC 0001230647")
-    plt.xlabel("Time Step")
-    plt.ylabel("Power Spectrum")
-    plt.xlim(0, 200)
+    plt.title("Power Spectrum of TIC 001230647 Using " + str(N_coefficients) + " Coefficients")
+    plt.xlabel("Time Steps")
+    plt.ylabel("$|c|^2$")
     plt.show()
     
-    max_power_spec = power_spectrum.argmax()
-    print(max_power_spec)
+    # Sorting the list of the power spectrum to find the top 15 coefficients
+    sorted_coefficients = sorted(power_spectrum, reverse = True)[0:N_coefficients]
     
-    dft_time_step = np.arange(len(dft_coefficients))
-    print(dft_time_step)
-    print(len(dft_coefficients))
+    min_coeff_val = np.min(sorted_coefficients)
     
-    inverse_dft = inverse_solver(top_coefficients)
+    filtered_coefficients = power_spectrum >= min_coeff_val
     
+    # # Finding the flux values by calculating the inverse transform
+    dft_inverse = inverse_solver(filtered_coefficients)
+    
+    # Making sure my x and y domains are filtered to the regoin I want to examine
     time_range = (time > 2990) & (time < 3000)
-    time = time[time_range]
-    flux = flux[time_range]
+    time_plot = time[time_range]
+    flux_plot = flux[time_range]
     
-    # Creating the figure
+    # Plotting the inverse Fourier transform over the spectra
     fig, ax = plt.subplots()
     
     # Setting the limits. Currently hard-coded for now
     ax.set_xlim(2990, 3000)
     
     # Plotting the static line in the background first
-    ax.plot(time,
-            flux,
+    ax.plot(time_plot,
+            flux_plot,
             label = "Spectra TIC 001230647",
             color = "#F2583A",
             linewidth = 2,
@@ -156,7 +160,7 @@ def descrete_fourier_transform():
     # Creating the function that will animate the inverse transform line from
     # left to right
     def animate_line(a):
-        animated_line.set_data(time[:a], inverse_dft[:a])
+        animated_line.set_data(time_plot[:a], dft_inverse[:a])
         return animated_line,
     
     # This is where the animation is created
@@ -164,9 +168,9 @@ def descrete_fourier_transform():
                             animate_line,
                             init_func = empty_line,
                             frames = len(time),
-                            interval = 0.1,
-                            blit = True,
-                            repeat = False)
+                            interval = 1,
+                            blit = False,
+                            repeat = True)
     
     
     plt.title("The Inverse Transform of the Calculated Fourier Series for \n"
@@ -179,4 +183,22 @@ def descrete_fourier_transform():
 
 
 parser = argparse.ArgumentParser(description = "Calculate the Fourier transform " \
-                                 "")
+                                "for spectra TIC 001230647 found on the TESS" \
+                                "website " \
+                                "https://tessebs.villanova.edu/0001230647 using" \
+                                " the number of user-inputted coefficients.")
+
+parser.add_argument("--N_coefficients",
+                    default = 10,
+                    type = int,
+                    help = "The number of coefficients to be used when" \
+                           " calculating the Fourier transform. The default is" \
+                            " set to 10.")
+
+args = parser.parse_args()
+
+spectra_transform = descrete_fourier_transform()
+
+plt.show()
+
+
