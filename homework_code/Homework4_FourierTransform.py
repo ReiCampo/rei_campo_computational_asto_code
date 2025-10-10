@@ -118,7 +118,7 @@ def descrete_fourier_transform(N_coefficients = 10):
     
     min_coeff_val = np.min(sorted_coefficients)
     
-    filtered_coefficients = power_spectrum >= min_coeff_val
+    filtered_coefficients = dft_coefficients >= min_coeff_val
     
     # # Finding the flux values by calculating the inverse transform
     dft_inverse = inverse_solver(filtered_coefficients)
