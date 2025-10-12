@@ -29,12 +29,10 @@ import os
 
 # Commenting this code out so that other users can run this code with their
 # own directories:
-# os.chdir("/Users/RachelCampo/Desktop/CUNY Classes/" \
-# "Fall 2025 Computational Astro/rei_campo_computational_asto_code/homework_code/" \
-# "Homework Data")
 
 
-def descrete_fourier_transform(N_coefficients = 10):
+
+def descrete_fourier_transform(input_path, N_coefficients = 10):
     '''
     This function will calculate a fourier transform and plot the power spectrum
     and fit of Fourier transform of spectra TIC 0001230647 found on the TESS 
@@ -45,6 +43,9 @@ def descrete_fourier_transform(N_coefficients = 10):
     that is a region that can be fitted well by the transform.
     
     Inputs:
+        input_path (str):
+            Takes in the path of where your spectra data is stored.
+            
         N_coefficients (int):
             The number of coefficients the user would like to use for the 
             Fourier transform. The default is set to 10 coefficients.
@@ -57,6 +58,8 @@ def descrete_fourier_transform(N_coefficients = 10):
     
     
     '''
+    
+    os.chdir(input_path)
     
     # Importing the chosen spectra and taking the flux and time
     tess_spectra = fits.open("tic0001230647.fits")
@@ -190,7 +193,7 @@ def descrete_fourier_transform(N_coefficients = 10):
     
     
     plt.title("The Inverse Transform of the Calculated Fourier Series for \n"
-              "TIC 0001230647 using " + str(N_coefficients) + " Coefficients")
+              "TIC 0001230647 Using " + str(N_coefficients) + " Coefficients")
     plt.xlabel("Time (Julien Days)")
     plt.ylabel("Flux")
     plt.show()
@@ -199,10 +202,16 @@ def descrete_fourier_transform(N_coefficients = 10):
 
 
 parser = argparse.ArgumentParser(description = "Calculate the Fourier transform " \
-                                "for spectra TIC 001230647 found on the TESS" \
+                                "for spectra TIC 001230647 found on the TESS " \
                                 "website " \
                                 "https://tessebs.villanova.edu/0001230647 using" \
                                 " the number of user-inputted coefficients.")
+
+parser.add_argument("input_path",
+                    type = str,
+                    help = "This is the path where your TESS data is stored. " \
+                    "tic001230647.fits is hardcoded in this example, so just " \
+                    "enter the path that your .fits file is located in.")
 
 parser.add_argument("--N_coefficients",
                     default = 10,
@@ -213,7 +222,8 @@ parser.add_argument("--N_coefficients",
 
 args = parser.parse_args()
 
-spectra_transform = descrete_fourier_transform()
+spectra_transform = descrete_fourier_transform(input_path = args.input_path,
+                                               N_coefficients = args.N_coefficients)
 
 plt.show()
 
