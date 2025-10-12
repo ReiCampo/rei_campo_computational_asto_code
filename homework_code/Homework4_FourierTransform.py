@@ -27,8 +27,11 @@ import matplotlib.animation as animation
 import argparse
 import os
 
-os.chdir("/Users/RachelCampo/Desktop/CUNY Classes/" \
-"Fall 2025 Computational Astro/rei_campo_computational_asto_code/homework_code")
+# Commenting this code out so that other users can run this code with their
+# own directories:
+# os.chdir("/Users/RachelCampo/Desktop/CUNY Classes/" \
+# "Fall 2025 Computational Astro/rei_campo_computational_asto_code/homework_code/" \
+# "Homework Data")
 
 
 def descrete_fourier_transform(N_coefficients = 10):
@@ -36,7 +39,10 @@ def descrete_fourier_transform(N_coefficients = 10):
     This function will calculate a fourier transform and plot the power spectrum
     and fit of Fourier transform of spectra TIC 0001230647 found on the TESS 
     website: 
-    https://tessebs.villanova.edu/0001230647
+    https://tessebs.villanova.edu/0001230647 
+    
+    The function will also filter down the Julian days to 2990 to 3000, since 
+    that is a region that can be fitted well by the transform.
     
     Inputs:
         N_coefficients (int):
@@ -45,14 +51,15 @@ def descrete_fourier_transform(N_coefficients = 10):
             
     Outpus:
         fig, ax (plot):
-            Returns the Fourier transform using the number of coefficients
-            inputted and animates the approximation on top of the spectra.
+            Returns the inverse Fourier transform using the number of 
+            coefficients inputted and animates the approximation on top of the 
+            spectra.
     
     
     '''
     
     # Importing the chosen spectra and taking the flux and time
-    tess_spectra = fits.open("Homework Data/tic0001230647.fits")
+    tess_spectra = fits.open("tic0001230647.fits")
     time = tess_spectra[1].data["times"]
     flux = tess_spectra[1].data["fluxes"]
 
@@ -89,7 +96,7 @@ def descrete_fourier_transform(N_coefficients = 10):
         
         for k in range(time_step):
             for n in range(time_step):
-                y[n] += (coefficients[k] * exp((-2j * pi * k * n) / time_step))
+                y[n] += (coefficients[k] * exp((2j * pi * k * n) / time_step))
         
         return y / time_step
         
@@ -101,26 +108,35 @@ def descrete_fourier_transform(N_coefficients = 10):
     power_spectrum = dft_coefficients * np.conjugate(dft_coefficients)
     
     # Getting rid of k = 0 values
-    power_spectrum[0] = 0
+    plotting_power_spectrum = np.copy(power_spectrum)
+    plotting_power_spectrum[0] = 0
     
     # Creating the x values for the power spectrum plot
-    n = np.arange(len(power_spectrum))
+    n = np.arange(len(plotting_power_spectrum))
     
     # Plotting the power spectrum of the Fourier series:
-    plt.plot(n, power_spectrum)
+    plt.plot(n, plotting_power_spectrum)
     plt.title("Power Spectrum of TIC 001230647 Using " + str(N_coefficients) + " Coefficients")
     plt.xlabel("Time Steps")
     plt.ylabel("$|c|^2$")
+    plt.xlim(0, 200)
     plt.show()
     
-    # Sorting the list of the power spectrum to find the top 15 coefficients
-    sorted_coefficients = sorted(power_spectrum, reverse = True)[0:N_coefficients]
     
-    min_coeff_val = np.min(sorted_coefficients)
+    # --------------------------------------------------------------------
+    # The following code was taken from Claude.ai in order to fix my data used
+    # when plotting my animated inverse fourier transform
     
-    filtered_coefficients = dft_coefficients >= min_coeff_val
+    # Find the indices of the top N coefficients
+    top_indices = np.argsort(power_spectrum[1:])[-N_coefficients:] + 1
+
+    # Create filtered coefficients with only top N
+    filtered_coefficients = np.zeros_like(dft_coefficients)
+    filtered_coefficients[0] = dft_coefficients[0] 
+    filtered_coefficients[top_indices] = dft_coefficients[top_indices]
+    # ---------------------------------------------------------------------
     
-    # # Finding the flux values by calculating the inverse transform
+    # Finding the flux values by calculating the inverse transform
     dft_inverse = inverse_solver(filtered_coefficients)
     
     # Making sure my x and y domains are filtered to the regoin I want to examine
@@ -160,22 +176,22 @@ def descrete_fourier_transform(N_coefficients = 10):
     # Creating the function that will animate the inverse transform line from
     # left to right
     def animate_line(a):
-        animated_line.set_data(time_plot[:a], dft_inverse[:a])
+        animated_line.set_data(time_plot[:a], np.real(dft_inverse[:a])) # Taking the real values of dft_inverse just in case matplotlib silently fails
         return animated_line,
     
     # This is where the animation is created
-    animation.FuncAnimation(fig,
-                            animate_line,
-                            init_func = empty_line,
-                            frames = len(time),
-                            interval = 1,
-                            blit = False,
-                            repeat = True)
+    anim = animation.FuncAnimation(fig,
+                                   animate_line,
+                                   init_func = empty_line,
+                                   frames = len(time_plot),
+                                   interval = 1,
+                                   blit = True,
+                                   repeat = False)
     
     
     plt.title("The Inverse Transform of the Calculated Fourier Series for \n"
-        "TIC 0001230647")
-    plt.xlabel("Time")
+              "TIC 0001230647 using " + str(N_coefficients) + " Coefficients")
+    plt.xlabel("Time (Julien Days)")
     plt.ylabel("Flux")
     plt.show()
     
