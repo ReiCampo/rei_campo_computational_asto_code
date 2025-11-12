@@ -9,6 +9,7 @@
 ############################################################################
 ############################################################################
 
+import numpy as np
 
 ##----------------------------------------------------------------
 ##                      Adaptive Step Size                       -
@@ -39,35 +40,38 @@
 ##                          Exercise 1                           -
 ##----------------------------------------------------------------
 
+# Setting up constants to be used later: 
+
 grav = 6.6738e-11 # in m^3 / kg * s^2
 
 M_Sun = 1.9891e30 # in kg
 
-d_close = 1.471e11 # in m
+d_close = 1.471e11 # in m in the x distance
 
-v_close = 3.0287e4 # in m/s
+v_close = 3.0287e4 # in m/s for the y component
 
 time_step = 8766 # in hours
 
-x_positions = []
+# Setting up empty arrays to be used for plotting later:
+r_positions = np.array([d_close, 0, 0, v_close])
+# Setting up derivatives to be used for later:
 
-y_positions = []
-
-x_velocity = []
-
-y_velocity = []
-
-for i in time_step:
     
-    def orbit_position(x, y, r):
+def orbit_position(x, y, r):
         
-        x_distance = -grav * M_Sun * (x / r ** 3)
+    v_x = r[1]
+
+    v_y = r[3]
         
-        y_distance = -grav * M_Sun * (y / r ** 3)
+    x_acceleration = (-grav * M_Sun * x) / (x**2 + y**2)**1.5 
         
-        return x_distance, y_distance
+    y_acceleration = (-grav * M_Sun * y) / (x**2 + y**2)**1.5
+        
+    return np.array([v_x, v_y, x_acceleration, y_acceleration])
     
-    r = orbit_position()
+def rk_func(t, h):
+     
+   
+def verlet_func(t, h):
     
-    def verlet_func(t, h):
         
