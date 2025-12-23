@@ -9,12 +9,17 @@
 ###############################################################################
 
 
+###  AI DISCLAIMER: I used ClaudeAI to assist me in this project, particularily   
+###  when it came to creating classes and plotting. ClaudeAI also assisted me     
+###  in my linear algebra and vector calculus when my original code was not       
+###  working properly.                                                            
+
+
 ##----------------------------------------------------------------
 ##                  Importing Necessary Packages                 -
 ##----------------------------------------------------------------
 
 import os
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
@@ -23,26 +28,67 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
 import copy
 
-# sys.path.insert(0, "/Users/RachelCampo/Desktop/CUNY Classes/Fall 2025 Computational Astro/rei_campo_computational_asto_code/final_project")
-# from CSA import ObservingSatellite, TargetObject, SynodicFrame
 
 class ObservingSatellite:
     
+    # Creating the initializer class that will store an observing satellite's 
+    # properties. Cartesian coordinates are used for positions and velocities.
     def __init__(self,
                  name,
                  position,
                  velocity):
         
+        '''
+        The initializer function for the observing satellite class. 
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained in the ObservingSatellite class.
+                
+            name (str):
+                The name of the observing satellite.
+                
+            position (array):
+                The current x, y, and z position of the satellite.
+                
+            velocity (array):
+                The current vx, vy, and vz position of the satellite.
+                
+        Outputs:
+            The properties of the observing satellite like the name, current 
+            position and velocities, position and velocity history, and the time 
+            history.
+        '''
+        
         self.name = name
         
+        # The current positions and velocity of the satellite:
         self.position = np.array(position, dtype = float)
         self.velocity = np.array(velocity, dtype = float)    
         
+        # This is to store the history of the positions and velocity:
         self.position_history = [self.position.copy()]
         self.velocity_history = [self.velocity.copy()]
         self.time_history = [0.0]
-        
+         
     def line_of_sight(self, target_position):
+        '''
+        This function calculates the line of sight vector from the satellite 
+        to the target object it is observing.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained in the ObservingSatellite class.
+            
+            target_position (array):
+                The x, y, and z position of the target object at the current
+                time step.
+                
+        Outputs:
+            norm_los (array):
+                The line of sight vector from the observing satellites to the 
+                target object
+        '''
         los = target_position - self.position
         norm_los = los / np.linalg.norm(los)
         return norm_los
@@ -51,6 +97,26 @@ class ObservingSatellite:
                             updated_position,
                             updated_velocity,
                             time):
+        '''
+        This function updates the current position and velocity of the observing
+        satellite at a given time step.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained in the ObservingSatellite class.
+                
+            updated_position (array):
+                The updated x, y, and z position of the observing satellite at
+                a given time step.
+                
+            updated_velocity (array):
+                The updated vx, vy, vz of the observing satellite at a given 
+                time step.
+                
+            time (float):
+                The current time step in the simulation.
+
+        '''
         
         self.position = np.array(updated_position, dtype = float)
         self.velocity = np.array(updated_velocity, dtype = float)
@@ -61,10 +127,36 @@ class ObservingSatellite:
         
     
     def distance_to(self, target_position):
-        """Calculate distance from satellite to a target position."""
+        """
+        Calculates the distance to the target object from the current position
+        of the observing satellite.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained in the ObservingSatellite class.
+                
+            target_postion (array):
+                The current x, y, and z position of the target object.
+                
+        Outputs:
+            The function returns an array of the total distance between the 
+            observing satellite and target object at the current time step.
+        """
         return np.linalg.norm(self.position - np.array(target_position))
     
     def get_current_state(self):
+        """
+        A function that outputs the current state vector of the observing 
+        satellite
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained in the ObservingSatellite class.
+
+        Outputs:
+            A dictionary containing the current x, y, z, vx, vy, vz of the 
+            observing satellite.
+        """
         return {"X Position: ": self.position[0],
                 "Y Position: ": self.position[1],
                 "Z Position: ": self.position[2],
@@ -81,29 +173,90 @@ class ObservingSatellite:
  
 class TargetObject:
     
+    # Creating a class that takes in the properties of the target object that
+    # the observing satellites are lookign at. This class could take in multiple
+    # target objects that the satellite architecture can observer, however the
+    # code is currently not able to track multiple targets at once.
+    
     def __init__(self,
                  name,
                  position,
                  velocity):
+        '''
+        The initializer function for the target object class. 
         
+        Inputs:
+            self (Class Properties):
+                Properties contained in the TargetObject class.
+                
+            name (str):
+                The name of the target object.
+                
+            position (array):
+                The current x, y, and z position of the target object.
+                
+            velocity (array):
+                The current vx, vy, and vz position of the target object.
+                
+        Outputs:
+            The properties of the target object like the name, current position
+            and velocities, position and velocity history, and the time history
+        '''
         self.name = name
+        
+        # The current position and velocity of the target object in Cartesian
+        # coordinates:
         self.position = np.array(position, dtype=float)
         self.velocity = np.array(velocity, dtype=float)
         
-        # Store history
+        # The position and velocity history of the target object in Cartesian
+        # coordintes:
         self.position_history = [self.position.copy()]
         self.velocity_history = [self.velocity.copy()]
         self.time_history = [0.0]
         
     def update_state(self, new_position, new_velocity, time):
-
+        '''
+        A function that updates the current state vector of the target object.
+        
+        Inputs:
+            self (Class Properties):
+                The properties of the target object.
+            
+            new_position (array):
+                The new x, y, and z positions of the target object at a given
+                time step.
+                
+            new_velocity (array):
+                The new vx, vy, and vz velocities of the target object at a 
+                given time step.
+                
+            time (float):
+                The current time step of the simulation.
+                
+        Outputs:
+            The updated state vector of the target object at the current time
+            step of the simulation.
+        '''
         self.position = np.array(new_position, dtype=float)
         self.velocity = np.array(new_velocity, dtype=float)
         self.position_history.append(self.position.copy())
         self.velocity_history.append(self.velocity.copy())
         self.time_history.append(time)
         
+        
     def get_current_state(self):
+        '''
+        Get the current state vector of the targt object
+        
+        Inputs:
+            self (Class Properties):
+                The properties of the target object.
+                
+        Outputs:
+            An array containing the current position and velocity of the target
+            object.
+        '''
 
         return np.concatenate([self.position, self.velocity])
     
@@ -122,6 +275,20 @@ class SynodicFrame:
 ##-----------------------------------------------------------------------------
     
     def __init__(self):
+        '''
+        The initializer function to the synodic frame class that stores
+        properties of the Earth and Moon.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+        Outputs:
+            Stores properties of the Earth and Moon like their gravitational
+            parameters, distance from Earth to the Moon, the angular velocity of
+            the Earth-Moon system, the period of the Earth-Moon system, and the
+            charactersitic time, length, and velocity.
+        '''
         
         ###  I am going to use the gravitational parameters, mu, of the masses in the     
         ###  system (so G * mass of object) because it is easier to keep track of those   
@@ -152,19 +319,86 @@ class SynodicFrame:
         self.velo_characteristic = self.len_characteristic/ self.time_characteristic
     
     def normalize_initial_conditions(self, positions, velocities):
+        '''
+        A function to normalize the positions and velocities of the state vector
+        of the objects in the simulation
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            positions (array):
+                The current x, y, and z position of the object in the 
+                simulation.
+                
+            velocities (array):
+                The current vx, vy, and vz velocities of the object in the
+                simulation.
+                
+        Outputs:
+            normalized_positions (array):
+                The normalized x, y, and z position of the simulation object
+                
+            normalied_velocities (array):
+                The normalized vx, vy, and vz velocities of the simulation
+                object.
+
+        '''
         
         normalized_positions = positions / self.len_characteristic
         normalized_velocities = velocities / self.velo_characteristic
         
         return normalized_positions, normalized_velocities
     
+    
     def denormalize_state_vector(self, normalized_positions, normalized_velocities):
+        '''
+        A function that denormalizes the state vector of the object in the 
+        simulation
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            normalized_positions (array):
+                The normalized x, y, and z positions of the simulation object.
+                
+            normalized_velocties (array):
+                The normalized vx, vy, and vz velocities of the simulation
+                object.
+                
+        
+        Outputs:
+            positions (array):
+                The denormalized x, y, and z positions of the simulation object.
+                
+            velocities (array):
+                The denormalized vz, vy, and vz velocities of the simulation
+                object.
+        '''
 
         positions = normalized_positions * self.len_characteristic
         velocities = normalized_velocities * self.velo_characteristic
         return positions, velocities
     
+    
+    
     def rotate_frame(self, theta):
+        '''
+        This function rotates the frame as the simulation goes on in order to
+        keep the simulation inthe synodic frame.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            theta (float):
+                The angle of Moon to the Earth.
+                
+        Outputs:
+            rotation_matrix (array):
+                The new matrix of where the position of the Earth and Moon are.
+        '''
         
         cosine = np.cos(theta)
         sine = np.sin(theta)
@@ -176,6 +410,26 @@ class SynodicFrame:
         return rotation_matrix
     
     def inertial_to_synodic(self, r_inertial, velo_inertial, time):
+        '''
+        This function transforms from the inertial frame to the synodic frame.
+        
+        Inputs: 
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            r_inertial (float):
+                The distance from the center of Earth to the center of the Moon
+                
+            velo_inertial (array):
+                The vx, vy, and vz velocity of the Moon with respect to Earth.
+                
+        Outputs:
+            r_synodic (array):
+                The synodic distance the Moon is from the Earth
+                
+            velo_synodic (array):
+                The synodic velocity of the Moon as it goes around Earth.
+        '''
         
         theta = self.omega * time
         
@@ -191,6 +445,30 @@ class SynodicFrame:
         return r_synodic, velo_synodic
     
     def synodic_to_inertial(self, r_synodic, velo_synodic, time):
+        '''
+        This function converts from the synodic frame to the intertial frame.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            r_synodic (array):
+                The synodic distance from the center of the Earth to the Moon.
+                
+            velo_synodic (array):
+                The synodic velocity of the Moon as it orbits around the Earth.
+                
+            time (float):
+                The current time step of the simulation.
+                
+        Outputs:
+            r_inertial (array):
+                The inertial distance from the center of the Earth to the center
+                of the Moon.
+                
+            velo_inertial (array):
+                The inertial velocity of the Moon as it orbits around the Earth.
+        '''
         theta = self.omega * time
         
         R = self.rotate_frame(theta)
@@ -204,6 +482,28 @@ class SynodicFrame:
 
     
     def get_lagrange_points(self, normalized = False):
+        '''
+        This calculates where the Earth-Moon Lagrange points are in the
+        simulation. These Lagrange points are approximate solutions and are not
+        exactly where the Lagrange points are. In fact, the Lagrange points
+        aren't even "points" necessarily, rather regions in space where you can
+        place an object and keep it there with minimal energy and corrections.
+        From looking around online, these approximations are good enough for the
+        purpose of this simulation.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            normalized (booleon):
+                Determines whether you want the Lagrange points to be normalized
+                or not. Automatically set to False.
+                
+        Outputs:
+            L_points (dictionary):
+                A dictionary containing the Cartesian coordinates of the five 
+                approximated Lagrange points. 
+        '''
 
         # L1, L2, L3 are on the x-axis (approximate solutions)
         # These would need numerical refinement for exact values
@@ -238,6 +538,24 @@ class SynodicFrame:
     
         
     def get_earth_position(self, normalized = False):
+        '''
+        This function calculates the position of Earth in the simulation and 
+        whether the user wants to normalize the position.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            normalized (booleon):
+                A flag for whether the user wants to normalize the position of
+                Earth. Automatically set to False.
+                
+        Outputs:
+            pos (array):
+                The position of Earth. Can be normalized or not depending on
+                the user's input.
+        '''
+        
         pos = np.array([-self.mu, 0, 0])
             
         if normalized == True:
@@ -249,6 +567,22 @@ class SynodicFrame:
         
             
     def get_moon_position(self, normalized = False):
+        '''
+        This function calculates the Moon's position in the simulation. The 
+        user can choose to normalize or not.
+        
+        Inputs:
+            self (Class Properties):
+                Properties contained of the SynodicFrame class.
+                
+            normalized (booleon):
+                Normalizes the position of the Moon. Automatically set to False.
+                
+        Outputs:
+            pos (array):
+                The Cartesian coordinates of the Moon's position, normalized or
+                not depending on the user's input.
+        '''
         pos = np.array([1 - self.mu, 0, 0])
         
         if normalized == True:
@@ -270,34 +604,53 @@ def calculate_parallax(sat1,
     one of the main sources of deviations in when predicting trajectories. 
     
     Inputs:
-        sat1: ObservingSatellite class
+        sat1 (ObservingSatellite class):
             An observing satellite that can either be in GEO, or at an
             Earth-Moon Lagrange point.
             
-        sat2: ObservingSatellite class
+        sat2 (ObservingSatellite class):
             A secondary observing satellite that can be in GEO or at an
             Earth-Moon Lagrange point. Two satellites are needed to calculate
             parallax.
             
-        real_target_position: array with shape (3,)
+        real_target_position (array):
             The actual position of the target, in kilometers.
             
-        angular_noise: float
+        angular_noise (float):
             The standard deviation of angular measurement error in degrees.
             0.01 is a typical deviation based on today's satellites' measurment
             precision.
         
-        n_samples: int
+        n_samples (int):
             The number of samples taken from the Gaussian uncertainty. These
             samples will then be used later to calculate alternate trajectories
             of the target object. The sampling is Monte Carlo.
             
     
     Outputs:
-        average_estimate array with shape (3,)
-        
+        average_estimate (array):
+            The average parallax distance the target object is based on a
+            Gaussian distribution error. This will be used as the estimated 
+            distance the target object is and will be used to recalculate the
+            trajectory of the target.
+            
+        true_estimate (array):
+            The actual distance the target object is away from us. This
+            calculation is determiend by using either the Runge-Kutta or
+            Leapfrog-Verlet method, depending on what the user inputted, with no
+            error calculation.
+            
+        sampled_estimates (array):
+            Alternate distances the target object could be at based on sampling
+            from the Gaussian distribution. The number of sampled estimates 
+            are the number of n_samples.
+            
+        uncertainty (array):
+            The uncertainty of the calculated distance of the target object 
+            in the x, y, and z coordinates.
         
     """
+    
     # Creating a function that will be used multiple times when calculating the
     # true and sampled positions:
     
@@ -305,6 +658,34 @@ def calculate_parallax(sat1,
                         sat2,
                         los1,
                         los2):
+        '''
+        This is a helper function that calculates the average distance of the
+        target object from the two observing satellites.
+        
+        Inputs:
+        sat1 (ObservingSatellite class):
+            An observing satellite that can either be in GEO, or at an
+            Earth-Moon Lagrange point.
+            
+        sat2 (ObservingSatellite class):
+            A secondary observing satellite that can be in GEO or at an
+            Earth-Moon Lagrange point. Two satellites are needed to calculate
+            parallax.
+            
+        los1 (array):
+            The line of sight vector for sat1 that points towards the target
+            object.
+            
+        los2 (array):
+            The line of sight vector for sat2 that points towards the target
+            object.
+            
+            
+        Outputs:
+            target_position (array):
+                The average estimated position of the target object.
+
+        '''
         
     # Here is where I begin to use a lot of linear algebra to set up the system
     # so I can calculate parallax later. Because both satellites have varying
@@ -347,6 +728,21 @@ def calculate_parallax(sat1,
 
     def add_angular_error(los_vector,
                           angular_std):
+        '''
+        This function adds in Gaussian noise to the parallax angular 
+        measurement.
+        
+        Inputs:
+            los_vector (array):
+                The line of sight vector from the observing satellite.
+                
+            angular_std (float):
+                The angular standard deviation in degrees.
+                
+        Outputs:
+            los_with_noise (array):
+                The line of sight vector with added in angular error.
+        '''
         
         los_unit = los_vector / np.linalg.norm(los_vector)
         angular_std_rad = np.radians(angular_std)
@@ -398,7 +794,6 @@ def calculate_parallax(sat1,
     
     
     return average_estimate, true_estimate, sampled_estimates, uncertainty
-
 
 
 def propagation_function(target,
@@ -493,7 +888,7 @@ def propagation_function(target,
         return state_vector + rk_solution
     
     
-    for step in range(1, n_steps +1):
+    for step in range(1, n_steps + 1):
         if method == "rk4":
             state_vector_norm = runge_kutta(dt, state_vector_norm, synodic_frame.mu)
             positions, velocities = synodic_frame.denormalize_state_vector(state_vector_norm[:3], state_vector_norm[3:])
@@ -700,14 +1095,8 @@ def plotting_code(satellites,
                   earth_position,
                   moon_position,
                   title,
-                  save_gif = True,
                   uncertainty_targets = None,
                   blind_index = None):
-    
-    if uncertainty_targets is not None:
-        print(f"uncertainty_targets type: {type(uncertainty_targets)}")
-        print(f"First element type: {type(uncertainty_targets[0])}")
-        print(f"Has position_history: {hasattr(uncertainty_targets[0], 'position_history')}")
     
     ### Setting up number of frames, trajectories, 3D spheres, and initializing
     ### the figure:
@@ -840,13 +1229,13 @@ def plotting_code(satellites,
         
         plot_elements['earth'] = ax.plot_surface(x_earth, y_earth, z_earth, 
                                                  color='blue', 
-                                                 alpha=0.4,
+                                                 alpha=0.7,
                                                  linewidth = 0, 
                                                  antialiased = True)
         
         plot_elements['moon'] = ax.plot_surface(x_moon, y_moon, z_moon, 
                                                 color='gray', 
-                                                alpha=0.4, 
+                                                alpha=0.5, 
                                                 linewidth = 0, 
                                                 antialiased = True)
         
@@ -859,11 +1248,7 @@ def plotting_code(satellites,
         
         geo_range = 42164 + np.linalg.norm(earth_position)
         max_range = max(x_range, y_range, z_range, moon_dist, earth_dist, geo_range) * 1.2
-        # max_range = max(
-        # np.max(np.abs(target_trajectory)),
-        # np.linalg.norm(moon_position)
-        # ) * 1.2
-    
+
         ax.set_xlim([-max_range/4, max_range])
         ax.set_ylim([-max_range/2, max_range/2])
         ax.set_zlim([-max_range/4, max_range/4])
@@ -879,7 +1264,7 @@ def plotting_code(satellites,
         legend_objects =    [Line2D([0], [0], color = 'green', linewidth = 3, 
                              label = "Visible"),
                             Line2D([0], [0], color = 'red', linewidth = 3, 
-                             label = "Blocked"),
+                             label = "Blocked", linestyle = "--"),
                             Line2D([0], [0], marker = "*", color = "black",
                                    markerfacecolor = "red", markersize = 12,
                                    label = "True Trajectory"),
@@ -908,7 +1293,6 @@ def plotting_code(satellites,
     ### is the reason why the target object and satellites animate on the plot.
     
     def update(frame):
-        """Update animation for each frame."""
         if frame < 5 or frame == blind_index:
             print(f"Frame {frame}: time = {target_estimated.time_history[frame] if frame < len(target_estimated.time_history) else 'N/A'}")
         # Clear previous dynamic elements. The reason I have to do this is
@@ -1114,7 +1498,7 @@ def plotting_code(satellites,
             else:
                 time_info = (f"Time: {time_days:.2f} days\n"
                              f"Frame: {frame + 1}/{num_frames}\n"
-                             f"TRACKING"
+                             f"TRACKING\n"
                              f"Divergence: {divergence:.2f} km")
         else:
             time_info = f"Time {time_days:.2f} days\nFrame: {frame + 1}/{num_frames}"
@@ -1144,20 +1528,6 @@ def plotting_code(satellites,
     
     anim = FuncAnimation(fig, update, init_func=initializer, frames=num_frames,
                         interval= 50, blit=False, repeat=True)
-    
-    if save_gif == True:
-        desktop = os.path.expanduser("~/Desktop/")
-        gif_filename = str(title) + ".gif"
-        full_path = os.path.join(desktop, gif_filename)
-    
-        print(f"Saving animation to: {full_path}")
-    
-        try:
-            writer = ImageMagickWriter(fps=20)
-            anim.save(full_path, writer=writer)
-            print("✓ Animation saved successfully!")
-        except Exception as e:
-            print(f"✗ Error: {e}")
         
     plt.show()
     
@@ -1280,8 +1650,6 @@ def test_tracking_system(title,
                                 object_name):
         """
         Create target on L2 Lyapunov orbit.
-    
-        REPLACES all the manual target setup code!
         """
         L2_x_norm = 1 - synodic_frame.mu + (synodic_frame.mu/3)**(1/3)
         Az = 0.02
@@ -1298,11 +1666,6 @@ def test_tracking_system(title,
 
     def find_blind_time(target, satellites, earth_position, moon_position, 
                    synodic_frame):
-        """
-        Find when satellites go blind (< 2 visible).
-    
-        Uses get_satellite_positions_at_time() helper!
-        """
     
         num_frames = len(target.position_history)
     
@@ -1310,7 +1673,6 @@ def test_tracking_system(title,
             target_pos = np.array(target.position_history[frame])
             time = target.time_history[frame]
         
-            # Use helper instead of manual calculation!
             sat_positions = get_satellite_positions_at_time(
                 satellites, time, earth_position, synodic_frame
             )
@@ -1515,6 +1877,8 @@ def test_tracking_system(title,
 
 if __name__ == "__main__":
     
+    np.random.seed(42)
+    
     test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 2 GEO Observers Using Verlet Integrator",
                          integrator = "Verlet",
                          satellites_in_system = ["GEO", "GEO"])
@@ -1526,6 +1890,8 @@ if __name__ == "__main__":
 ##---------------------------------------------------------------                     
 
 if __name__ == "__main__":
+    
+    np.random.seed(42)
     
     test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 2 GEO Observers Using Runge-Kutta Integrator",
                          integrator = "rk4",
@@ -1544,6 +1910,8 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     
+    np.random.seed(42)
+    
     test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 1 GEO and 1 L4 Observer Using Leapfrog-Verlet Integrator",
                          integrator = "verlet",
                          satellites_in_system = ["L4", "GEO"])
@@ -1554,6 +1922,8 @@ if __name__ == "__main__":
 ##---------------------------------------------------------------
 
 if __name__ == "__main__":
+    
+    np.random.seed(42)
     
     test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 1 GEO and 1 L4 Observer Using Runge-Kutta Integrator",
                          integrator = "rk4",
@@ -1572,6 +1942,8 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     
+    np.random.seed(42)
+    
     test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 1 L4 and 1 L5 Observer Using Leapfrog-Verlet Integrator",
                          integrator = "verlet",
                          satellites_in_system = ["L4", "L5"])  
@@ -1584,31 +1956,3 @@ if __name__ == "__main__":
 ###  highly sensitive, so perhaps in a more fleshed out model, you can adjust    
 ###  the satellites to always observe at a certain time, rather than all the     
 ###  time.                                                                       
-
-
-##-----------------------------------------------------------------------------
-##  Test 6: 3 Satellites Spread Across Lagrange Points and GEO using Verlet   -
-##-----------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    
-    test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with 1 L4, 1 L5, and 1 GEO Observer Using Leapfrog-Verlet Integrator",
-                         integrator = "verlet",
-                         satellites_in_system = ["L4", "L5", "GEO"])  
-
-
-###  Conclusion: Even with three satellites, the improvement in accuracy is not   
-###  much better than two satellites in L4 and L5. With this low-level            
-###  simulation, perhaps the best situational awareness architecture is two       
-###  satellites in L4 and L5? Need to improve the model to see if this is true!   
-
-
-##---------------------------------------------------------------
-##                        Just for fun:                         -
-##---------------------------------------------------------------
-
-if __name__ == "__main__":
-    
-    test_tracking_system(title = "Tracking a Target Object At L2 Lyapunov Orbit with MAXIMUM POWER",
-                         integrator = "verlet",
-                         satellites_in_system = ["L4", "L5", "GEO", "GEO", "GEO"]) 
